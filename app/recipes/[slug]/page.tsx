@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { RecipeConfigurator } from "@/app/components/recipe-configurator";
+import { StructuredData } from "@/app/components/structured-data";
 import { getRecipe, recipes } from "@/lib/catalog";
 import { categories } from "@/lib/catalog/recipes";
 import { agents, resourceRegistry, type ResourceId } from "@/lib/catalog/resources";
+import { pageMetadata, siteOrigin } from "@/lib/seo";
 
 type PageProps = { params: Promise<{ slug: string }> };
 const compactStars = new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 });
@@ -17,11 +19,7 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const recipe = getRecipe((await params).slug);
   if (!recipe) return {};
-  return {
-    title: recipe.title,
-    description: recipe.summary,
-    ...(process.env.SITE_URL ? { alternates: { canonical: `/recipes/${recipe.slug}` } } : {}),
-  };
+  return pageMetadata(`/recipes/${recipe.slug}`, recipe.title, recipe.summary);
 }
 
 function ResourceCard({ id, optional }: { id: ResourceId; optional: boolean }) {
@@ -57,6 +55,14 @@ export default async function RecipePage({ params }: PageProps) {
 
   return (
     <main id="main-content" className="page-shell recipe-page" tabIndex={-1}>
+      <StructuredData data={{
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Recipes", item: siteOrigin.href },
+          { "@type": "ListItem", position: 2, name: recipe.title, item: new URL(`/recipes/${recipe.slug}`, siteOrigin).href },
+        ],
+      }} />
       <nav className="breadcrumbs" aria-label="Breadcrumb">
         <Link href="/#recipes">Recipes</Link>
         <span aria-hidden="true">/</span>

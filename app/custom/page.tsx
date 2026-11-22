@@ -1,11 +1,11 @@
-import type { Metadata } from "next";
 import { CustomRecipeBuilder } from "../components/custom-recipe-builder";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Create a custom recipe",
-  description: "Build a copy-ready recipe from your own project brief, visual style, and curated skills and tools.",
-  ...(process.env.SITE_URL ? { alternates: { canonical: "/custom" } } : {}),
-};
+export const metadata = pageMetadata(
+  "/custom",
+  "Create a custom AI recipe",
+  "Create a copy-ready AI recipe with your own brief, curated skills and GitHub repositories, a visual style, and acceptance checks.",
+);
 
 export default function CustomRecipePage() {
   return (

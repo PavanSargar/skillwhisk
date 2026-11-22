@@ -1,19 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Provider as TooltipProvider } from "@radix-ui/react-tooltip";
+import { homeDescription, homeTitle, siteOrigin } from "@/lib/seo";
 import "@fontsource/archivo-black/latin-400.css";
 import "@fontsource-variable/atkinson-hyperlegible-next";
 import "./globals.css";
 
-const siteUrl = process.env.SITE_URL;
 export const metadata: Metadata = {
-  ...(siteUrl ? { metadataBase: new URL(siteUrl) } : {}),
-  title: { default: "SkillWhisk — Copy-ready AI project recipes", template: "%s | SkillWhisk" },
-  description: "Find a project recipe, pick a UI style, and copy a prompt with curated skills, repositories, and checks for your coding agent.",
-  openGraph: {
-    type: "website",
-    siteName: "SkillWhisk",
-  },
+  metadataBase: siteOrigin,
+  title: homeTitle,
+  description: homeDescription,
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -41,7 +37,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               <span className="brand-mark" aria-hidden="true"><i /><i /></span>
               <span>SkillWhisk</span>
             </Link>
-            <p>© {new Date().getUTCFullYear()} SkillWhisk</p>
+            <div className="footer-meta">
+              <p>Powered by <strong>Waystoweb Technologies</strong></p>
+              <p>© {new Date().getUTCFullYear()} SkillWhisk</p>
+            </div>
           </div>
         </footer>
       </body>
