@@ -358,6 +358,37 @@ a:hover { text-decoration-thickness: 2px; }
 .button:active { box-shadow: none; }
 .button:disabled { background: var(--paper); color: var(--secondary); box-shadow: none; cursor: default; }
 .secondary-button { background: var(--white); }
+.icon-button { flex: none; width: 2.75rem; padding: 0; }
+.action-tooltip { width: auto; }
+.transfer-icon { position: relative; width: 1rem; height: 1rem; }
+.transfer-icon::before {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 0.32rem;
+  border: 2px solid currentColor;
+  border-top: 0;
+}
+.transfer-icon::after {
+  content: "";
+  position: absolute;
+  top: 0.32rem;
+  left: 50%;
+  width: 0.4rem;
+  height: 0.4rem;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: translateX(-50%) rotate(45deg);
+}
+.transfer-icon > span {
+  position: absolute;
+  top: 0;
+  left: calc(50% - 1px);
+  height: 0.67rem;
+  border-left: 2px solid currentColor;
+}
+.share-icon::after { top: 0.09rem; transform: translateX(-50%) rotate(-135deg); }
+.share-icon > span { top: 0.12rem; }
 .copy-button { min-width: 7.65rem; font-size: 0.94rem; }
 .copy-icon { position: relative; display: inline-block; width: 1rem; height: 1rem; }
 .copy-icon::before, .copy-icon::after {
@@ -405,7 +436,6 @@ a:hover { text-decoration-thickness: 2px; }
 .recipe-intro p, .missing-page p { margin-top: 0.65rem; max-width: 44rem; color: var(--secondary); font-size: 1.15rem; }
 .recipe-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.85rem 1rem; }
 .recipe-heading > div { min-width: 0; }
-.save-recipe { flex: none; width: 2.75rem; padding: 0; }
 .bookmark-icon {
   position: relative;
   width: 0.9rem;
@@ -422,7 +452,6 @@ a:hover { text-decoration-thickness: 2px; }
 }
 .save-recipe[aria-pressed="true"] .bookmark-icon::after,
 .saved-filter[aria-pressed="true"] .bookmark-icon::after { display: none; }
-.bookmark-tooltip { width: auto; }
 .recipe-overview {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -465,17 +494,17 @@ textarea { display: block; padding: 0.55rem 0.65rem; resize: vertical; }
   border-bottom: var(--rule);
   background: var(--lavender);
 }
-.prompt-options {
+.prompt-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.2rem 1rem;
-  padding: 0.25rem 0.9rem;
-  border-bottom: 1px solid var(--ink);
+  justify-content: flex-end;
+  gap: 0.45rem 0.55rem;
+  min-width: 0;
+  margin-left: auto;
   font-size: 0.9rem;
 }
-.prompt-options .manual-copy, .workflow-error { flex-basis: 100%; }
-.prompt-options .manual-copy { order: 1; margin-bottom: 0.25rem; }
+.prompt-actions .manual-copy, .prompt-actions .workflow-error { flex-basis: 100%; order: 1; }
 .prompt-text {
   margin: 0;
   max-height: 34rem;

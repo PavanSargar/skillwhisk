@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { ActionTooltip } from "./action-tooltip";
 
 export function CopyButton({ getText, recipeTitle, disabled, kind = "prompt" }: {
   getText: () => string;
@@ -39,20 +40,29 @@ export function CopyButton({ getText, recipeTitle, disabled, kind = "prompt" }: 
     }
   }
 
+  const copied = state === "copied";
+  const button = (
+    <button
+      type="button"
+      className={isPrompt ? "button copy-button" : "button secondary-button icon-button"}
+      onClick={copy}
+      disabled={disabled}
+      aria-label={isPrompt ? `${copied ? "Copied prompt" : "Copy prompt"} for ${recipeTitle}` : "Share settings"}
+    >
+      {copied || isPrompt ? (
+        <span className={copied ? "check-icon" : "copy-icon"} aria-hidden="true" />
+      ) : (
+        <span className="transfer-icon share-icon" aria-hidden="true"><span /></span>
+      )}
+      {isPrompt && (copied ? "Copied" : "Copy prompt")}
+    </button>
+  );
+
   return (
     <>
-      <button
-        type="button"
-        className={isPrompt ? "button copy-button" : "plain-button"}
-        onClick={copy}
-        disabled={disabled}
-        aria-label={isPrompt ? `${state === "copied" ? "Copied prompt" : "Copy prompt"} for ${recipeTitle}` : "Share settings"}
-      >
-        {isPrompt && <span className={state === "copied" ? "check-icon" : "copy-icon"} aria-hidden="true" />}
-        {state === "copied" ? (isPrompt ? "Copied" : "Link copied") : (isPrompt ? "Copy prompt" : "Share settings")}
-      </button>
+      {isPrompt ? button : <ActionTooltip label={copied ? "Link copied" : "Share settings"}>{button}</ActionTooltip>}
       <span className="sr-only" role="status">
-        {state === "copied" ? `Copied ${copyItem} for ${recipeTitle}.` : ""}
+        {copied ? `Copied ${copyItem} for ${recipeTitle}.` : ""}
       </span>
       {state === "manual" && (
         <label className="manual-copy">

@@ -14,9 +14,11 @@ export function PromptPreview({
     <section className="prompt-panel" aria-labelledby="preview-heading">
       <div className="prompt-header">
         <h2 id="preview-heading">Prompt preview</h2>
-        <CopyButton recipeTitle={title} getText={() => prompt} disabled={!canCopy} />
+        <div className="prompt-actions">
+          {actions}
+          <CopyButton recipeTitle={title} getText={() => prompt} disabled={!canCopy} />
+        </div>
       </div>
-      {actions}
       {!canCopy && <p className="preview-hint">{copyHint}</p>}
       <pre className="prompt-text" tabIndex={0} aria-labelledby="preview-heading">{prompt}</pre>
     </section>

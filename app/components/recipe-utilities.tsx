@@ -1,9 +1,9 @@
 "use client";
 
-import * as Tooltip from "@radix-ui/react-tooltip";
 import { useState } from "react";
 import { skillFiles } from "@/lib/catalog/skill-export";
 import type { PromptRecipe, PromptSettings } from "@/lib/catalog/prompt";
+import { ActionTooltip } from "./action-tooltip";
 import { CopyButton } from "./copy-button";
 import { useFavoriteRecipes } from "./use-workflow-storage";
 
@@ -11,19 +11,12 @@ export function SaveRecipeButton({ slug }: { slug: string }) {
   const { favorites, toggleFavorite } = useFavoriteRecipes();
   const saved = favorites.includes(slug);
   return (
-    <Tooltip.Root>
-      <Tooltip.Trigger asChild>
-        <button type="button" className="button secondary-button save-recipe" aria-label="Save recipe"
-          aria-pressed={saved} onClick={() => toggleFavorite(slug)}>
-          <span className="bookmark-icon" aria-hidden="true" />
-        </button>
-      </Tooltip.Trigger>
-      <Tooltip.Portal>
-        <Tooltip.Content className="style-tooltip bookmark-tooltip" sideOffset={6}>
-          Save recipe
-        </Tooltip.Content>
-      </Tooltip.Portal>
-    </Tooltip.Root>
+    <ActionTooltip label="Save recipe">
+      <button type="button" className="button secondary-button icon-button save-recipe" aria-label="Save recipe"
+        aria-pressed={saved} onClick={() => toggleFavorite(slug)}>
+        <span className="bookmark-icon" aria-hidden="true" />
+      </button>
+    </ActionTooltip>
   );
 }
 
@@ -57,14 +50,18 @@ export function RecipeUtilities({ path, params, skillId, recipe, settings }: {
   }
 
   return (
-    <div className="prompt-options">
+    <>
       <CopyButton recipeTitle={recipe.title} kind="settings" getText={() => {
         const url = new URL(path, window.location.origin);
         url.search = params.toString();
         return url.href;
       }} />
-      <button type="button" className="plain-button" onClick={downloadSkill}>Download skill</button>
+      <ActionTooltip label="Download skill">
+        <button type="button" className="button secondary-button icon-button" aria-label="Download skill" onClick={downloadSkill}>
+          <span className="transfer-icon" aria-hidden="true"><span /></span>
+        </button>
+      </ActionTooltip>
       {downloadError && <p className="workflow-error" role="status">Couldn’t download the skill. Try again.</p>}
-    </div>
+    </>
   );
 }
