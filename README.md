@@ -31,7 +31,7 @@ npm run test:e2e
 npm start
 ```
 
-Set `SITE_URL` to the public origin before building for hosting to generate absolute canonical URLs and sitemap entries. See [the environment example](.env.example).
+Canonical URLs, social previews, and the sitemap use the public SkillWhisk origin at `https://skillwhisk.vercel.app`. Set `SITE_URL` before building to use a different public origin. See [the environment example](.env.example).
 
 ## Maintain the catalog
 

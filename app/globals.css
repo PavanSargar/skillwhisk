@@ -372,7 +372,8 @@ a:hover { text-decoration-thickness: 2px; }
 }
 .boosters-grid .role-badge, .badge-highlight { background: var(--lavender); }
 .site-footer { border-top: var(--rule); }
-.footer-inner { min-height: 4.5rem; }
+.footer-inner { min-height: 4.5rem; padding-block: 0.75rem; }
+.footer-meta { text-align: right; }
 .footer-inner p { color: var(--secondary); font-size: 0.9rem; }
 
 .breadcrumbs {

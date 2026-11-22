@@ -1,11 +1,12 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { CatalogBrowser, RecipeActions, type CatalogGroup } from "./components/catalog-browser";
+import { StructuredData } from "./components/structured-data";
 import { recipes } from "@/lib/catalog";
 import { categories, type CategoryId, type Recipe } from "@/lib/catalog/recipes";
 import { resourceRegistry, workflowBoosters } from "@/lib/catalog/resources";
+import { homeDescription, homeTitle, pageMetadata, siteName, siteOrigin } from "@/lib/seo";
 
-export const metadata: Metadata = process.env.SITE_URL ? { alternates: { canonical: "/" } } : {};
+export const metadata = pageMetadata("/", homeTitle, homeDescription);
 
 function RecipeRow({ recipe }: { recipe: Recipe }) {
   return (
@@ -52,6 +53,13 @@ export default function Home() {
 
   return (
     <main id="main-content" className="page-shell" tabIndex={-1}>
+      <StructuredData data={{
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        name: siteName,
+        url: siteOrigin.href,
+        description: homeDescription,
+      }} />
       <section className="masthead" aria-labelledby="home-heading">
         <div className="masthead-copy">
           <h1 id="home-heading">SkillWhisk<span aria-hidden="true">.</span></h1>

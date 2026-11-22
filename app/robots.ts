@@ -1,8 +1,9 @@
 import type { MetadataRoute } from "next";
+import { siteOrigin } from "@/lib/seo";
 
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: { userAgent: "*", allow: "/" },
-    ...(process.env.SITE_URL ? { sitemap: new URL("/sitemap.xml", process.env.SITE_URL).href } : {}),
+    sitemap: new URL("/sitemap.xml", siteOrigin).href,
   };
 }
