@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { RecipeConfigurator } from "@/app/components/recipe-configurator";
+import { SaveRecipeButton } from "@/app/components/recipe-utilities";
 import { StructuredData } from "@/app/components/structured-data";
 import { getRecipe, recipes } from "@/lib/catalog";
 import { categories } from "@/lib/catalog/recipes";
@@ -68,11 +69,14 @@ export default async function RecipePage({ params }: PageProps) {
         <span aria-hidden="true">/</span>
         <Link href={`/#category-${recipe.category}`}>{category.name}</Link>
       </nav>
-      <header className="recipe-intro">
-        <h1>{recipe.title}</h1>
-        <p>{recipe.summary}</p>
+      <header className="recipe-intro recipe-heading">
+        <div>
+          <h1>{recipe.title}</h1>
+          <p>{recipe.summary}</p>
+        </div>
+        <SaveRecipeButton slug={recipe.slug} />
       </header>
-      <RecipeConfigurator recipe={recipe} />
+      <RecipeConfigurator key={recipe.slug} recipe={recipe} />
       <section className="detail-resources" aria-labelledby="resources-heading">
         <div className="section-heading">
           <h2 id="resources-heading">Recipe resources</h2>

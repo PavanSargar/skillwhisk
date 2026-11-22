@@ -5,10 +5,12 @@ import { customRecipeDefaults, makeCustomRecipe } from "@/lib/catalog/custom-rec
 import { composePrompt, defaultPromptSettings, maxBriefLength, type PromptSettings } from "@/lib/catalog/prompt";
 import { categories, recipeOptions, type CategoryId } from "@/lib/catalog/recipes";
 import { agentOptions, reaResources, resourceRegistry, type Agent, type ResourceId } from "@/lib/catalog/resources";
-import type { StyleId } from "@/lib/catalog/styles";
+import { customSettingsParams, maxChecksLength, maxRecipeNameLength, readCustomSettings, type CustomSettings, type LocalDraft } from "@/lib/catalog/workflow-settings";
 import { PromptPreview } from "./prompt-preview";
+import { RecipeUtilities } from "./recipe-utilities";
 import { SelectControl } from "./select-control";
 import { StylePicker } from "./style-picker";
+import { useWorkflowDraft } from "./use-workflow-storage";
 
 const categoryOptions = Object.entries(categories).map(([value, category]) => ({ value, label: category.name }));
 const resourcesByName = (Object.keys(resourceRegistry) as ResourceId[])
@@ -63,19 +65,27 @@ function ResourcePicker({ selected, onChange, onReset }: {
 }
 
 export function CustomRecipeBuilder() {
-  const [title, setTitle] = useState("");
-  const [brief, setBrief] = useState("");
-  const [acceptanceChecks, setAcceptanceChecks] = useState("");
-  const [category, setCategory] = useState<CategoryId>("landing");
-  const [style, setStyle] = useState<StyleId>();
-  const [agent, setAgent] = useState<Agent>("universal");
-  const [choices, setChoices] = useState<PromptSettings["choices"]>({});
-  const [resourceSelection, setResourceSelection] = useState<ResourceId[]>();
+  const { draft, shared, saveDraft } = useWorkflowDraft("skillwhisk:draft:custom");
+  const { title, brief, checks } = draft;
+  const selection = readCustomSettings(shared, readCustomSettings(new URLSearchParams(draft.settings)));
+  const { category, style, agent, choices, resources } = selection;
   const securityAudit = category === "security";
-  const selected = resourceSelection ?? customRecipeDefaults[category];
-  const recipe = makeCustomRecipe({ category, title, acceptanceChecks, resources: selected });
+  const selected = resources ?? customRecipeDefaults[category];
+  const recipe = makeCustomRecipe({ category, title, acceptanceChecks: checks, resources: selected });
   const defaults = defaultPromptSettings(recipe);
   const settings: PromptSettings = { ...defaults, brief, style: style ?? defaults.style, agent, choices: { ...defaults.choices, ...choices } };
+  const shareParams = customSettingsParams({
+    category, agent, style: settings.style, resources: category === "rea" ? undefined : selected,
+    choices: Object.fromEntries(recipe.options.map(({ id }) => [id, settings.choices[id]])),
+  });
+
+  function saveText(changes: Partial<Pick<LocalDraft, "title" | "brief" | "checks">>) {
+    saveDraft({ ...draft, ...changes, settings: customSettingsParams(selection).toString() });
+  }
+
+  function saveSelection(changes: Partial<CustomSettings>) {
+    saveDraft({ ...draft, settings: customSettingsParams({ ...selection, ...changes }).toString() });
+  }
 
   return (
     <div className="configurator">
@@ -84,22 +94,23 @@ export function CustomRecipeBuilder() {
         <div className="brief-control">
           <label htmlFor="custom-title" className="control-label">Recipe name</label>
           <input id="custom-title" className="text-control" placeholder="e.g. Photography booking site" value={title}
-            onChange={(event) => setTitle(event.target.value)} maxLength={90} required />
+            onChange={(event) => saveText({ title: event.target.value })} maxLength={maxRecipeNameLength} required />
         </div>
         <div className="brief-control">
           <label htmlFor="custom-brief" className="control-label">{securityAudit ? "Audit scope" : "Project brief"}</label>
           <textarea id="custom-brief" rows={4} placeholder={securityAudit ? "Which target and redacted evidence should the audit cover?" : "Who is it for? What should it do?"} value={brief}
-            onChange={(event) => setBrief(event.target.value)} maxLength={maxBriefLength} required />
+            onChange={(event) => saveText({ brief: event.target.value })} maxLength={maxBriefLength} required />
+          <span className="field-hint">Drafts are saved in this browser.</span>
         </div>
         <div className="config-fields">
           <SelectControl id="custom-category" label="Project type" value={category} options={categoryOptions}
-            onChange={(event) => setCategory(event.target.value as CategoryId)} />
-          <StylePicker id="custom-style" label="UI style" value={settings.style} onChange={setStyle} />
+            onChange={(event) => saveSelection({ category: event.target.value as CategoryId })} />
+          <StylePicker id="custom-style" label="UI style" value={settings.style} onChange={(style) => saveSelection({ style })} />
           <SelectControl id="custom-agent" label="Paste into" value={agent} options={agentOptions}
-            onChange={(event) => setAgent(event.target.value as Agent)} />
+            onChange={(event) => saveSelection({ agent: event.target.value as Agent })} />
           {recipe.options.map(({ id }) => (
             <SelectControl key={id} id={`custom-${id}`} label={recipeOptions[id].label} options={recipeOptions[id].values}
-              value={settings.choices[id] ?? ""} onChange={(event) => setChoices({ ...choices, [id]: event.target.value })} />
+              value={settings.choices[id] ?? ""} onChange={(event) => saveSelection({ choices: { ...choices, [id]: event.target.value } })} />
           ))}
         </div>
         {category === "rea" ? (
@@ -114,18 +125,22 @@ export function CustomRecipeBuilder() {
         ) : (
           <ResourcePicker
             selected={selected}
-            onChange={(id, checked) => setResourceSelection(checked ? [...selected, id] : selected.filter((item) => item !== id))}
-            onReset={() => setResourceSelection(undefined)}
+            onChange={(id, checked) => saveSelection({ resources: checked ? [...selected, id] : selected.filter((item) => item !== id) })}
+            onReset={() => saveSelection({ resources: undefined })}
           />
         )}
         <div className="brief-control">
           <label htmlFor="custom-checks" className="control-label">Acceptance checks <span className="optional">(optional)</span></label>
-          <textarea id="custom-checks" rows={3} placeholder="One check per line" value={acceptanceChecks}
-            onChange={(event) => setAcceptanceChecks(event.target.value)} maxLength={800} />
+          <textarea id="custom-checks" rows={3} placeholder="One check per line" value={checks}
+            onChange={(event) => saveText({ checks: event.target.value })} maxLength={maxChecksLength} />
         </div>
       </section>
       <PromptPreview title={recipe.title} prompt={composePrompt(recipe, settings)} canCopy={Boolean(title.trim() && brief.trim())}
-        copyHint={securityAudit ? "Enter a recipe name and audit scope to enable copying." : undefined} />
+        copyHint={securityAudit ? "Enter a recipe name and audit scope to enable copying." : undefined}
+        actions={
+          <RecipeUtilities path="/custom" params={shareParams} skillId={`custom-${category}`}
+            recipe={{ ...recipe, title: `${categories[category].name} recipe`, checks: [] }} settings={settings} />
+        } />
     </div>
   );
 }

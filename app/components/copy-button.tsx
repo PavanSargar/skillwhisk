@@ -2,11 +2,18 @@
 
 import { useEffect, useRef, useState } from "react";
 
-export function CopyButton({ getText, recipeTitle, disabled }: { getText: () => string; recipeTitle: string; disabled?: boolean }) {
+export function CopyButton({ getText, recipeTitle, disabled, kind = "prompt" }: {
+  getText: () => string;
+  recipeTitle: string;
+  disabled?: boolean;
+  kind?: "prompt" | "settings";
+}) {
   const [state, setState] = useState<"idle" | "copied" | "manual">("idle");
   const [manualText, setManualText] = useState("");
   const textarea = useRef<HTMLTextAreaElement>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const isPrompt = kind === "prompt";
+  const copyItem = isPrompt ? "prompt" : "settings link";
 
   useEffect(() => () => clearTimeout(timer.current), []);
 
@@ -36,20 +43,20 @@ export function CopyButton({ getText, recipeTitle, disabled }: { getText: () => 
     <>
       <button
         type="button"
-        className="button copy-button"
+        className={isPrompt ? "button copy-button" : "plain-button"}
         onClick={copy}
         disabled={disabled}
-        aria-label={`${state === "copied" ? "Copied prompt" : "Copy prompt"} for ${recipeTitle}`}
+        aria-label={isPrompt ? `${state === "copied" ? "Copied prompt" : "Copy prompt"} for ${recipeTitle}` : "Share settings"}
       >
-        <span className={state === "copied" ? "check-icon" : "copy-icon"} aria-hidden="true" />
-        {state === "copied" ? "Copied" : "Copy prompt"}
+        {isPrompt && <span className={state === "copied" ? "check-icon" : "copy-icon"} aria-hidden="true" />}
+        {state === "copied" ? (isPrompt ? "Copied" : "Link copied") : (isPrompt ? "Copy prompt" : "Share settings")}
       </button>
       <span className="sr-only" role="status">
-        {state === "copied" ? `Copied prompt for ${recipeTitle}.` : ""}
+        {state === "copied" ? `Copied ${copyItem} for ${recipeTitle}.` : ""}
       </span>
       {state === "manual" && (
         <label className="manual-copy">
-          <span>Clipboard access is unavailable. Copy the selected prompt manually.</span>
+          <span>Clipboard access is unavailable. Copy the selected {copyItem} manually.</span>
           <textarea ref={textarea} readOnly rows={5} value={manualText} />
         </label>
       )}
