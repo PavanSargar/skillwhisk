@@ -1,5 +1,6 @@
 "use client";
 
+import * as Tooltip from "@radix-ui/react-tooltip";
 import { useState } from "react";
 import { skillFiles } from "@/lib/catalog/skill-export";
 import type { PromptRecipe, PromptSettings } from "@/lib/catalog/prompt";
@@ -10,10 +11,19 @@ export function SaveRecipeButton({ slug }: { slug: string }) {
   const { favorites, toggleFavorite } = useFavoriteRecipes();
   const saved = favorites.includes(slug);
   return (
-    <button type="button" className="button secondary-button save-recipe" aria-pressed={saved} onClick={() => toggleFavorite(slug)}>
-      {saved && <span className="check-icon" aria-hidden="true" />}
-      Save recipe
-    </button>
+    <Tooltip.Root>
+      <Tooltip.Trigger asChild>
+        <button type="button" className="button secondary-button save-recipe" aria-label="Save recipe"
+          aria-pressed={saved} onClick={() => toggleFavorite(slug)}>
+          <span className="bookmark-icon" aria-hidden="true" />
+        </button>
+      </Tooltip.Trigger>
+      <Tooltip.Portal>
+        <Tooltip.Content className="style-tooltip bookmark-tooltip" sideOffset={6}>
+          Save recipe
+        </Tooltip.Content>
+      </Tooltip.Portal>
+    </Tooltip.Root>
   );
 }
 

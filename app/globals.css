@@ -252,6 +252,9 @@ a:hover { text-decoration-thickness: 2px; }
 .agent-filter .select-control { flex: 1; }
 .catalog-status { display: flex; flex-wrap: wrap; min-height: 3rem; align-items: center; gap: 0.45rem 1rem; color: var(--secondary); }
 .saved-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   margin-left: auto;
   padding: 0.3rem 0.55rem;
   border: var(--rule);
@@ -402,7 +405,24 @@ a:hover { text-decoration-thickness: 2px; }
 .recipe-intro p, .missing-page p { margin-top: 0.65rem; max-width: 44rem; color: var(--secondary); font-size: 1.15rem; }
 .recipe-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.85rem 1rem; }
 .recipe-heading > div { min-width: 0; }
-.save-recipe { flex: none; }
+.save-recipe { flex: none; width: 2.75rem; padding: 0; }
+.bookmark-icon {
+  position: relative;
+  width: 0.9rem;
+  height: 1.13rem;
+  background: currentColor;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 77%, 0 100%);
+}
+.bookmark-icon::after {
+  content: "";
+  position: absolute;
+  inset: 2px 2px 3px;
+  background: var(--white);
+  clip-path: inherit;
+}
+.save-recipe[aria-pressed="true"] .bookmark-icon::after,
+.saved-filter[aria-pressed="true"] .bookmark-icon::after { display: none; }
+.bookmark-tooltip { width: auto; }
 .recipe-overview {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -555,5 +575,7 @@ textarea { display: block; padding: 0.55rem 0.65rem; resize: vertical; }
 
 @media (forced-colors: active) {
   .button, .group-heading, .resource-chip, .role-badge { border: 2px solid ButtonText; }
+  .bookmark-icon { forced-color-adjust: none; background: ButtonText; }
+  .bookmark-icon::after { background: ButtonFace; }
   :focus-visible { outline-color: Highlight; }
 }

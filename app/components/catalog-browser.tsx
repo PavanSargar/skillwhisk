@@ -84,6 +84,7 @@ export function CatalogBrowser({ groups }: { groups: CatalogGroup[] }) {
         <p role="status">{count} {count === 1 ? "recipe" : "recipes"}</p>
         {(category !== "all" || query || savedOnly) && <button className="plain-button" type="button" onClick={resetFilters}>Clear filters</button>}
         <button className="saved-filter" type="button" aria-pressed={savedOnly} onClick={() => setSavedOnly(!savedOnly)}>
+          <span className="bookmark-icon" aria-hidden="true" />
           Saved recipes
         </button>
       </div>

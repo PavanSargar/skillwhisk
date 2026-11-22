@@ -17,8 +17,12 @@ test("recipe details show setup and output, save favorites, and share settings w
   await page.getByRole("combobox", { name: "UI style" }).click();
   await page.getByRole("option", { name: "Editorial", exact: true }).click();
   await page.getByRole("combobox", { name: "Target duration" }).selectOption("15");
-  await page.getByRole("button", { name: "Save recipe" }).click();
-  await expect(page.getByRole("button", { name: "Save recipe" })).toHaveAttribute("aria-pressed", "true");
+  const bookmark = page.getByRole("button", { name: "Save recipe" });
+  await expect(bookmark).toHaveText("");
+  await bookmark.hover();
+  await expect(page.getByRole("tooltip", { name: "Save recipe" })).toBeVisible();
+  await bookmark.click();
+  await expect(bookmark).toHaveAttribute("aria-pressed", "true");
 
   await page.getByRole("button", { name: "Share settings" }).click();
   const shared = new URL(await page.evaluate(() => navigator.clipboard.readText()));
@@ -45,7 +49,9 @@ test("recipe details show setup and output, save favorites, and share settings w
   }
 
   await page.goto("/");
-  await page.getByRole("button", { name: "Saved recipes" }).click();
+  const savedFilter = page.getByRole("button", { name: "Saved recipes" });
+  await expect(savedFilter.locator(".bookmark-icon")).toBeVisible();
+  await savedFilter.click();
   await expect(page.getByRole("article")).toHaveCount(1);
   await page.getByRole("link", { name: "Faceless short", exact: true }).click();
   await page.getByRole("button", { name: "Save recipe" }).click();
