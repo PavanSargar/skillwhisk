@@ -2,7 +2,9 @@
 
 SkillWhisk is a copy-ready library of 110 recipes across eleven categories. Each recipe includes a workflow, curated skills and repositories, and specific acceptance checks. The library shows three recipes per category at first. Expand a category to browse it, or search the entire library. Pick a UI style and copy the prompt from the library. Open a recipe to preview the Markdown and customize the brief, target agent, workflow boosters, and applicable output options.
 
-Use **Create recipe** to start from a new brief, select tools from the catalog, add your own acceptance checks, and copy the resulting prompt. The builder keeps the draft in the current page.
+Use **Create recipe** to start from a new brief, select tools from the catalog, add your own acceptance checks, and copy the resulting prompt. SkillWhisk saves drafts and favorites in the current browser.
+
+Recipe details show the inputs, tool setup, optional fallbacks, and expected output. **Share settings** copies a link with the agent, visual style, tools, and applicable output options. **Download skill** exports a portable Agent Skills ZIP with a `SKILL.md` and the recipe instructions. Personal draft text stays in the browser. Unzip the bundle and follow your agent’s instructions for adding a skill directory.
 
 The featured **Faceless short** prompt directs the receiving agent to render and return a finished MP4 in the current session. Use Codex, Claude Code, Gemini CLI, or Antigravity with access to the required render tools.
 

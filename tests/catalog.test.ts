@@ -6,6 +6,7 @@ import { composePrompt, defaultPromptSettings } from "../lib/catalog/prompt";
 import { categories, recipeOptions } from "../lib/catalog/recipes";
 import { agentOptions, reaResources, resourceRegistry, workflowBoosters } from "../lib/catalog/resources";
 import { styleOptions } from "../lib/catalog/styles";
+import { readRecipeSettings, recipeSettingsParams } from "../lib/catalog/workflow-settings";
 
 test("the catalog contains at least 100 distinct, usable recipe entries", () => {
   assert.ok(recipes.length >= 100);
@@ -163,4 +164,18 @@ test("custom recipes apply category defaults, checked resources and user accepta
   assert.match(prompt, /Optional workflow boosters\n- \[Playwright CLI\]/);
   assert.match(prompt, /Teach new baristas/);
   assert.match(prompt, /intelligible audio/);
+});
+
+test("recipe settings links validate supported choices and preserve explicit empty boosters", () => {
+  const recipe = getRecipe("saas-landing-page")!;
+  const params = new URLSearchParams("agent=constructor&style=editorial&boosters=&context=unsupported&brief=secret");
+  const settings = readRecipeSettings(recipe, params);
+  assert.equal(settings.agent, "universal");
+  assert.equal(settings.style, "editorial");
+  assert.equal(settings.choices.context, "auto");
+  assert.deepEqual(settings.boosters, []);
+  assert.equal(settings.brief, "");
+  const shared = recipeSettingsParams(recipe, { ...settings, brief: "secret" });
+  assert.equal(shared.get("boosters"), "");
+  assert.equal(shared.has("brief"), false);
 });

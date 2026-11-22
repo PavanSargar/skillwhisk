@@ -7,6 +7,7 @@ import { composePrompt, defaultPromptSettings } from "@/lib/catalog/prompt";
 import { CopyButton } from "./copy-button";
 import { SelectControl } from "./select-control";
 import { StylePicker } from "./style-picker";
+import { useFavoriteRecipes } from "./use-workflow-storage";
 
 export interface CatalogGroup {
   id: CategoryId;
@@ -38,16 +39,21 @@ export function CatalogBrowser({ groups }: { groups: CatalogGroup[] }) {
   const [category, setCategory] = useState<CategoryId | "all">("all");
   const [agent, setAgent] = useState<Agent>("universal");
   const [expanded, setExpanded] = useState<Partial<Record<CategoryId, boolean>>>({});
+  const [savedOnly, setSavedOnly] = useState(false);
+  const { favorites } = useFavoriteRecipes();
   const searchInput = useRef<HTMLInputElement>(null);
   const terms = query.toLocaleLowerCase().trim().split(/\s+/).filter(Boolean);
   const filtered = groups.map((group) => group.items.map((item) => (
-    (category === "all" || group.id === category) && terms.every((term) => item.searchText.includes(term))
+    (category === "all" || group.id === category)
+    && (!savedOnly || favorites.includes(item.slug))
+    && terms.every((term) => item.searchText.includes(term))
   )));
   const count = filtered.reduce((total, matches) => total + matches.filter(Boolean).length, 0);
 
   function resetFilters() {
     setQuery("");
     setCategory("all");
+    setSavedOnly(false);
     searchInput.current?.focus();
   }
 
@@ -76,19 +82,25 @@ export function CatalogBrowser({ groups }: { groups: CatalogGroup[] }) {
       </div>
       <div className="catalog-status">
         <p role="status">{count} {count === 1 ? "recipe" : "recipes"}</p>
-        {(category !== "all" || query) && <button className="plain-button" type="button" onClick={resetFilters}>Clear filters</button>}
+        {(category !== "all" || query || savedOnly) && <button className="plain-button" type="button" onClick={resetFilters}>Clear filters</button>}
+        <button className="saved-filter" type="button" aria-pressed={savedOnly} onClick={() => setSavedOnly(!savedOnly)}>
+          <span className="bookmark-icon" aria-hidden="true" />
+          Saved recipes
+        </button>
       </div>
       {count === 0 && (
         <div className="empty-state">
-          <h3>No recipes match</h3>
-          <p>Try a project type like portfolio or a tool name like Playwright.</p>
+          <h3>{savedOnly && favorites.length === 0 ? "No saved recipes yet" : "No recipes match"}</h3>
+          <p>{savedOnly && favorites.length === 0
+            ? "Open a recipe and select Save recipe to find it here."
+            : "Try a project type like portfolio or a tool name like Playwright."}</p>
         </div>
       )}
       {groups.map(({ id, items }, groupIndex) => {
         const matchingItems = items.filter((_, index) => filtered[groupIndex][index]);
         const matchedCount = matchingItems.length;
         const categoryInfo = categories[id];
-        const isExpanded = terms.length > 0 || Boolean(expanded[id]);
+        const isExpanded = savedOnly || terms.length > 0 || Boolean(expanded[id]);
         const visibleSlugs = new Set((isExpanded ? matchingItems : matchingItems.slice(0, initialRecipesPerCategory)).map(({ slug }) => slug));
         const listId = `list-${id}`;
         return (
@@ -98,7 +110,7 @@ export function CatalogBrowser({ groups }: { groups: CatalogGroup[] }) {
                 <h3 id={`heading-${id}`}>{categoryInfo.name}</h3>
                 <p>{categoryInfo.description}</p>
               </div>
-              {terms.length === 0 && matchedCount > initialRecipesPerCategory && (
+              {!savedOnly && terms.length === 0 && matchedCount > initialRecipesPerCategory && (
                 <button
                   type="button"
                   className="group-toggle"
