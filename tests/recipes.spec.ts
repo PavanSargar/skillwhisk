@@ -110,7 +110,7 @@ test("detail copy matches the customized preview", async ({ context, page }) => 
   await expect(adminPreview).not.toContainText("Playwright CLI");
 });
 
-test("the mobile engagement recipe has a catalog badge and copies the six SkillWhisk rules", async ({ context, page }) => {
+test("the mobile engagement recipe shows its badge and copies the six SkillWhisk rules", async ({ context, page }) => {
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   await page.goto("/");
   const mobile = page.getByRole("region", { name: "Mobile apps", exact: true });
@@ -118,7 +118,9 @@ test("the mobile engagement recipe has a catalog badge and copies the six SkillW
   await expect(row.getByText("SkillWhisk rules", { exact: true })).toBeVisible();
   await row.getByRole("link", { name: "High-retention mobile app" }).click();
   await expect(page).toHaveURL(/\/recipes\/high-retention-mobile-app$/);
-  await expect(page.getByRole("region", { name: "What you need" })).not.toContainText("SkillWhisk rules");
+  const requirements = page.getByRole("region", { name: "What you need" });
+  await expect(requirements.getByText("SkillWhisk rules", { exact: true })).toBeVisible();
+  await expect(requirements).not.toContainText("The Itch");
   await page.getByRole("button", { name: "Copy prompt for High-retention mobile app" }).click();
   const prompt = await page.evaluate(() => navigator.clipboard.readText());
   for (const title of ["The Itch", "The Lazy Thumb", "The Paved Path", "The Slot Machine", "The Bottomless Pit", "The Piggy Bank"]) {

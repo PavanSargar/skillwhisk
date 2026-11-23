@@ -1,4 +1,4 @@
-import { recipeOptions, type Profile, type Recipe } from "@/lib/catalog/recipes";
+import { recipeOptions, skillWhiskRulesLabel, type Profile, type Recipe } from "@/lib/catalog/recipes";
 import { agents, resourceRegistry } from "@/lib/catalog/resources";
 import { composeReviewPrompt, type PromptSettings } from "@/lib/catalog/prompt";
 import { CopyButton } from "./copy-button";
@@ -45,6 +45,7 @@ export function RecipeOverview({ recipe, settings }: { recipe: Recipe; settings:
             </ul>
           </details>
         )}
+        {recipe.rules && <p><span className="role-badge badge-highlight">{skillWhiskRulesLabel}</span></p>}
       </section>
       <section aria-labelledby="deliverable-heading">
         <h2 id="deliverable-heading">What you get</h2>
