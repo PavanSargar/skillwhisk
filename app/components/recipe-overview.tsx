@@ -1,4 +1,4 @@
-import { recipeOptions, skillWhiskRulesLabel, type Profile, type Recipe } from "@/lib/catalog/recipes";
+import { recipeOptions, type Profile, type Recipe } from "@/lib/catalog/recipes";
 import { agents, resourceRegistry } from "@/lib/catalog/resources";
 import { composeReviewPrompt, type PromptSettings } from "@/lib/catalog/prompt";
 import { CopyButton } from "./copy-button";
@@ -41,16 +41,6 @@ export function RecipeOverview({ recipe, settings }: { recipe: Recipe; settings:
                   {setup && <p>{setup}</p>}
                   {fallback && <p>{fallback}</p>}
                 </li>
-              ))}
-            </ul>
-          </details>
-        )}
-        {recipe.rules && (
-          <details className="recipe-setup">
-            <summary>{skillWhiskRulesLabel}</summary>
-            <ul>
-              {recipe.rules.map(({ title, guidance }) => (
-                <li key={title}><strong>{title}</strong><p>{guidance}</p></li>
               ))}
             </ul>
           </details>
