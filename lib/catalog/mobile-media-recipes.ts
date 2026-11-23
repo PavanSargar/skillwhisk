@@ -2,7 +2,7 @@ import { defineRecipes } from "./recipes";
 
 export const mobileRecipes = defineRecipes("mobile", [
   {
-    slug: "habit-forming-mobile-app", title: "Habit-forming mobile app",
+    slug: "high-retention-mobile-app", title: "High-retention mobile app",
     summary: "Build an app people return to, with a clear core action, fresh content, and saved progress.",
     resources: ["expo-skill", "expo", "expo-sqlite", "native-a11y"],
     workflow: "Identify a moment when the app is genuinely useful and make the first meaningful action quick. Build a default route into that action, then prototype discovery and saved progress with local fixtures. Pick engagement mechanics that fit the brief and leave people in control of their session and data.",

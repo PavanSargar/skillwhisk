@@ -8,7 +8,7 @@ Recipe details show the inputs, tool setup, optional fallbacks, and expected out
 
 After building, use **Copy review prompt** on the recipe detail page. It includes your brief, relevant settings, and the recipe’s acceptance checks so an agent can assess the result and cite evidence.
 
-The **Habit-forming mobile app** recipe includes six **SkillWhisk rules** for mobile engagement, from a clear default action to saved progress and user-controlled discovery.
+The **High-retention mobile app** recipe includes six **SkillWhisk rules** for mobile engagement, from a clear default action to saved progress and user-controlled discovery.
 
 The featured **Faceless short** prompt directs the receiving agent to render and return a finished MP4 in the current session. Use Codex, Claude Code, Gemini CLI, or Antigravity with access to the required render tools.
 

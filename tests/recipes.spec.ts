@@ -114,13 +114,14 @@ test("the mobile engagement recipe shows and copies the six SkillWhisk rules", a
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   await page.goto("/");
   const mobile = page.getByRole("region", { name: "Mobile apps", exact: true });
-  const row = mobile.getByRole("article", { name: "Habit-forming mobile app", exact: true });
+  const row = mobile.getByRole("article", { name: "High-retention mobile app", exact: true });
   await expect(row.getByText("SkillWhisk rules", { exact: true })).toBeVisible();
-  await row.getByRole("link", { name: "Habit-forming mobile app" }).click();
+  await row.getByRole("link", { name: "High-retention mobile app" }).click();
+  await expect(page).toHaveURL(/\/recipes\/high-retention-mobile-app$/);
   const rules = page.locator("details").filter({ hasText: "SkillWhisk rules" });
   await rules.getByText("SkillWhisk rules", { exact: true }).click();
   await expect(rules.getByRole("listitem")).toHaveCount(6);
-  await page.getByRole("button", { name: "Copy prompt for Habit-forming mobile app" }).click();
+  await page.getByRole("button", { name: "Copy prompt for High-retention mobile app" }).click();
   const prompt = await page.evaluate(() => navigator.clipboard.readText());
   for (const title of ["The Itch", "The Lazy Thumb", "The Paved Path", "The Slot Machine", "The Bottomless Pit", "The Piggy Bank"]) {
     await expect(rules.getByText(title, { exact: true })).toBeVisible();
