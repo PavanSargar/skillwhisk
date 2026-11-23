@@ -12,9 +12,11 @@ function RecipeRow({ recipe }: { recipe: Recipe }) {
   return (
     <article className="recipe-row" aria-labelledby={`title-${recipe.slug}`}>
       <div className="row-identity">
-        <h4 id={`title-${recipe.slug}`}><Link href={`/recipes/${recipe.slug}`}>{recipe.title}</Link></h4>
+        <div className="row-title">
+          <h4 id={`title-${recipe.slug}`}><Link href={`/recipes/${recipe.slug}`}>{recipe.title}</Link></h4>
+          {recipe.rules && <span className="role-badge badge-highlight">{skillWhiskRulesLabel}</span>}
+        </div>
         <p>{recipe.summary}</p>
-        {recipe.rules && <span className="role-badge badge-highlight">{skillWhiskRulesLabel}</span>}
       </div>
       <ul className="resource-strip" role="list" aria-label={`Resources for ${recipe.title}`}>
         {[...recipe.resources, ...recipe.defaultBoosters].map((id) => {
