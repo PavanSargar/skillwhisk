@@ -467,6 +467,8 @@ a:hover { text-decoration-thickness: 2px; }
 .recipe-setup summary { cursor: pointer; text-decoration: underline; text-underline-offset: 0.15em; }
 .recipe-setup ul { margin: 0.4rem 0 0; padding-left: 1rem; }
 .recipe-setup li + li { margin-top: 0.5rem; }
+.recipe-review { display: grid; justify-items: start; gap: 0.4rem; margin-top: 0.6rem; font-size: 0.94rem; }
+.recipe-review .button { max-width: 100%; white-space: normal; }
 .configurator { display: grid; grid-template-columns: minmax(16rem, 0.75fr) minmax(0, 1.4fr); gap: 1rem; }
 .config-panel, .prompt-panel {
   min-width: 0;

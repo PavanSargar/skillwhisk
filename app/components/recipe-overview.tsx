@@ -1,6 +1,7 @@
-import { recipeOptions, type Profile, type Recipe } from "@/lib/catalog/recipes";
+import { recipeOptions, skillWhiskRulesLabel, type Profile, type Recipe } from "@/lib/catalog/recipes";
 import { agents, resourceRegistry } from "@/lib/catalog/resources";
-import type { PromptSettings } from "@/lib/catalog/prompt";
+import { composeReviewPrompt, type PromptSettings } from "@/lib/catalog/prompt";
+import { CopyButton } from "./copy-button";
 
 const inputs: Record<Profile, string> = {
   "public-web": "A project brief and an agent with access to your website workspace.",
@@ -44,11 +45,24 @@ export function RecipeOverview({ recipe, settings }: { recipe: Recipe; settings:
             </ul>
           </details>
         )}
+        {recipe.rules && (
+          <details className="recipe-setup">
+            <summary>{skillWhiskRulesLabel}</summary>
+            <ul>
+              {recipe.rules.map(({ title, guidance }) => (
+                <li key={title}><strong>{title}</strong><p>{guidance}</p></li>
+              ))}
+            </ul>
+          </details>
+        )}
       </section>
       <section aria-labelledby="deliverable-heading">
         <h2 id="deliverable-heading">What you get</h2>
         <p>{mp4 ? <>A playable <code>faceless-short.mp4</code> in the selected format.</> : recipe.deliverable}</p>
         {mp4 && duration && aspect && <p className="field-hint">{duration.label} · {aspect.label}</p>}
+        <div className="recipe-review">
+          <CopyButton kind="review" recipeTitle={recipe.title} getText={() => composeReviewPrompt(recipe, settings)} />
+        </div>
       </section>
     </div>
   );

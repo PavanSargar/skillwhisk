@@ -92,6 +92,15 @@ test("detail copy matches the customized preview", async ({ context, page }) => 
   await expect(preview).toContainText("attach the file in your response");
   await page.getByRole("button", { name: "Copy prompt for Faceless short" }).click();
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(await preview.textContent());
+  await page.getByRole("button", { name: "Copy review prompt" }).click();
+  await expect(page.getByRole("region", { name: "What you get" }).getByRole("status")).toHaveText("Copied review prompt for Faceless short.");
+  const review = await page.evaluate(() => navigator.clipboard.readText());
+  expect(review).toContain("Explain how sourdough rises.");
+  expect(review).toContain("Target duration: 15 seconds");
+  expect(review).toContain("Aspect ratio: Square 1:1");
+  expect(review).toContain("Visual direction: Hand-drawn");
+  expect(review).toContain("FFprobe confirms the requested aspect ratio");
+  expect(review).not.toContain("Run the render in this session");
 
   await page.goto("/recipes/role-based-admin-panel");
   const adminPreview = page.locator(".prompt-text");
@@ -99,6 +108,26 @@ test("detail copy matches the customized preview", async ({ context, page }) => 
   await page.getByRole("checkbox", { name: "21st MCP" }).check();
   await expect(adminPreview).toContainText("21st MCP");
   await expect(adminPreview).not.toContainText("Playwright CLI");
+});
+
+test("the mobile engagement recipe shows and copies the six SkillWhisk rules", async ({ context, page }) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.goto("/");
+  const mobile = page.getByRole("region", { name: "Mobile apps", exact: true });
+  const row = mobile.getByRole("article", { name: "Habit-forming mobile app", exact: true });
+  await expect(row.getByText("SkillWhisk rules", { exact: true })).toBeVisible();
+  await row.getByRole("link", { name: "Habit-forming mobile app" }).click();
+  const rules = page.locator("details").filter({ hasText: "SkillWhisk rules" });
+  await rules.getByText("SkillWhisk rules", { exact: true }).click();
+  await expect(rules.getByRole("listitem")).toHaveCount(6);
+  await page.getByRole("button", { name: "Copy prompt for Habit-forming mobile app" }).click();
+  const prompt = await page.evaluate(() => navigator.clipboard.readText());
+  for (const title of ["The Itch", "The Lazy Thumb", "The Paved Path", "The Slot Machine", "The Bottomless Pit", "The Piggy Bank"]) {
+    await expect(rules.getByText(title, { exact: true })).toBeVisible();
+    expect(prompt).toContain(`**${title}.**`);
+  }
+  await page.goto("/recipes/habit-tracker");
+  await expect(page.getByText("SkillWhisk rules", { exact: true })).toHaveCount(0);
 });
 
 test("custom builder generates a copyable recipe from its own brief, tools and checks", async ({ context, page }) => {

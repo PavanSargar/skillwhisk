@@ -53,6 +53,7 @@ export const categories = {
 
 export type CategoryId = keyof typeof categories;
 export type Profile = (typeof categories)[CategoryId]["profile"];
+export const skillWhiskRulesLabel = "SkillWhisk rules";
 
 export interface RecipeDraft {
   slug: string;
@@ -62,6 +63,7 @@ export interface RecipeDraft {
   workflow: string;
   deliverable: string;
   checks: readonly [string, string, ...string[]];
+  rules?: readonly { title: string; guidance: string }[];
   resources: readonly [ResourceId, ResourceId, ...ResourceId[]];
   boosters?: readonly BoosterId[];
   defaultBoosters?: readonly BoosterId[];

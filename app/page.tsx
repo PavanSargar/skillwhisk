@@ -2,7 +2,7 @@ import Link from "next/link";
 import { CatalogBrowser, RecipeActions, type CatalogGroup } from "./components/catalog-browser";
 import { StructuredData } from "./components/structured-data";
 import { recipes } from "@/lib/catalog";
-import { categories, type CategoryId, type Recipe } from "@/lib/catalog/recipes";
+import { categories, skillWhiskRulesLabel, type CategoryId, type Recipe } from "@/lib/catalog/recipes";
 import { resourceRegistry, workflowBoosters } from "@/lib/catalog/resources";
 import { homeDescription, homeTitle, pageMetadata, siteName, siteOrigin } from "@/lib/seo";
 
@@ -14,6 +14,7 @@ function RecipeRow({ recipe }: { recipe: Recipe }) {
       <div className="row-identity">
         <h4 id={`title-${recipe.slug}`}><Link href={`/recipes/${recipe.slug}`}>{recipe.title}</Link></h4>
         <p>{recipe.summary}</p>
+        {recipe.rules && <span className="role-badge badge-highlight">{skillWhiskRulesLabel}</span>}
       </div>
       <ul className="resource-strip" role="list" aria-label={`Resources for ${recipe.title}`}>
         {[...recipe.resources, ...recipe.defaultBoosters].map((id) => {
@@ -45,6 +46,7 @@ export default function Home() {
         recipe.summary,
         categories[id].name,
         recipe.stack,
+        ...(recipe.rules ? [skillWhiskRulesLabel, ...recipe.rules.map(({ title }) => title)] : []),
         ...new Set([...recipe.resources, ...recipe.boosters].map((resource) => resourceRegistry[resource].name)),
       ].join(" ").toLocaleLowerCase(),
       content: <RecipeRow recipe={recipe} />,

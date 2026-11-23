@@ -1,4 +1,4 @@
-import { recipeOptions, type OptionId, type Profile, type Recipe } from "./recipes";
+import { recipeOptions, skillWhiskRulesLabel, type OptionId, type Profile, type Recipe } from "./recipes";
 import { agents, resourceRegistry, type Agent, type BoosterId, type ResourceId } from "./resources";
 import { styles, type StyleId } from "./styles";
 
@@ -12,7 +12,7 @@ export interface PromptSettings {
   choices: Partial<Record<OptionId, string>>;
 }
 
-export type PromptRecipe = Pick<Recipe, "title" | "summary" | "deliverable" | "delivery" | "workflow" | "stack" | "style" | "profile" | "options" | "boosters" | "defaultBoosters"> & {
+export type PromptRecipe = Pick<Recipe, "title" | "summary" | "deliverable" | "delivery" | "workflow" | "stack" | "style" | "profile" | "options" | "boosters" | "defaultBoosters" | "rules"> & {
   checks: readonly string[];
   resources: readonly ResourceId[];
 };
@@ -67,6 +67,49 @@ const styleContext: Record<GeneralProfile, string> = {
   analysis: "Use this direction for any prototype or visual deliverable without altering what the evidence shows.",
 };
 
+const offlineAuditScope = "Use existing offline, read-only analysis on those artifacts. Exclude live probing, vulnerability reproduction, exploit payloads, credential testing, new load generation, and changes to the target or its files.";
+
+function acceptanceChecks(recipe: PromptRecipe) {
+  if (recipe.profile === "security-audit") {
+    return [
+      ...recipe.checks,
+      "Give each finding a severity, confidence, affected component, evidence reference, impact, and recommended mitigation. Explicitly list unverified controls and gaps.",
+      "Redact credentials, tokens, personal data, and sensitive values in the report.",
+    ];
+  }
+  return [...recipe.checks, ...(recipe.delivery === "rendered-mp4" ? [mediaPlayback] : qualityChecks[recipe.profile])];
+}
+
+function selectedOptions(recipe: PromptRecipe, settings: PromptSettings) {
+  const defaults = defaultPromptSettings(recipe);
+  return recipe.options.map(({ id }) => {
+    const control = recipeOptions[id];
+    const option = control.values.find(({ value }) => value === settings.choices[id])
+      ?? control.values.find(({ value }) => value === defaults.choices[id]);
+    return { label: control.label, option };
+  });
+}
+
+export function composeReviewPrompt(recipe: PromptRecipe, settings: PromptSettings) {
+  const brief = settings.brief.trim().slice(0, maxBriefLength);
+  const security = recipe.profile === "security-audit";
+  const choices = selectedOptions(recipe, settings).flatMap(({ label, option }) => option ? [`- ${label}: ${option.label}`] : []);
+  const configuration = security ? choices : [`- Visual direction: ${styles[settings.style].name}`, ...choices];
+
+  return [
+    `# Review the result · ${recipe.title}`,
+    `## Expected deliverable\n${recipe.deliverable}`,
+    brief && `## ${security ? "Audit scope supplied by the user" : recipe.delivery === "rendered-mp4" ? "Video brief" : "Project brief"}\n${brief}`,
+    configuration.length > 0 && `## Selected settings\n${configuration.join("\n")}`,
+    security
+      ? "## Review scope\nReview the completed report against the authorized artifacts and redacted evidence supplied by the user. Ask for the report or evidence if it is missing."
+      : "## Review scope\nReview the existing result the user supplies or identifies in their workspace. If it is missing, ask for the artifact or location. Use available, non-destructive checks on authorized artifacts and local test fixtures. Leave project files and deliverables as they are.",
+    security && offlineAuditScope,
+    `## Acceptance checks\nUse these as review criteria for the existing result.\n${acceptanceChecks(recipe).map((check) => `- [ ] ${check}`).join("\n")}`,
+    "## Review report\nFor each applicable check, record Pass, Fail, or Unverified and cite the evidence or explain what is missing. Mark checks outside the scope Not applicable with a reason. Cite the relevant file, screenshot, test result, or media timestamp where available. Summarize the highest-impact fixes and the next check to verify each one.",
+  ].filter(Boolean).join("\n\n");
+}
+
 function resourceLine(id: ResourceId, agent: Agent, referenceOnly = false) {
   const resource = resourceRegistry[id];
   const citation = `- [${resource.name}](${resource.url}) (${resource.kind}) — ${resource.role}`;
@@ -86,35 +129,24 @@ export function composePrompt(recipe: PromptRecipe, settings: PromptSettings) {
   const agent = agents[settings.agent];
   const brief = settings.brief.trim().slice(0, maxBriefLength);
   const boosters = recipe.boosters.filter((id) => settings.boosters.includes(id));
+  const checks = `## Acceptance checks\n${acceptanceChecks(recipe).map((check) => `- [ ] ${check}`).join("\n")}`;
 
   if (recipe.profile === "security-audit") {
-    const checks = [
-      ...recipe.checks,
-      "Give each finding a severity, confidence, affected component, evidence reference, impact, and recommended mitigation. Explicitly list unverified controls and gaps.",
-      "Redact credentials, tokens, personal data, and sensitive values in the report.",
-    ];
-
     return [
       `# ${recipe.title}`,
       recipe.summary,
       brief && `## Audit scope supplied by the user\n${brief}`,
       "## Read-only scope\nReview only the authorized app, site, server, or local source named or supplied by the user. Work from provided code, configuration, redacted exports, and completed test results. Use URLs and hostnames as scope identifiers. Request the missing artifacts if evidence is insufficient.",
-      "Use existing offline, read-only analysis on those artifacts. Exclude live probing, vulnerability reproduction, exploit payloads, credential testing, new load generation, and changes to the target or its files.",
+      offlineAuditScope,
       `## Tools and setup · ${agent.name}\nUse the linked resources as references for interpreting the supplied material. Follow the read-only scope when a linked workflow describes other actions.`,
       [...recipe.resources, ...boosters].map((id) => resourceLine(id, settings.agent, true)).join("\n"),
       `## Workflow\n${recipe.workflow}`,
       `## Deliverable\n${recipe.deliverable}\n- ${style.name}: Apply this style to report presentation only. Plain Markdown is sufficient.`,
-      `## Acceptance checks\n${checks.map((check) => `- [ ] ${check}`).join("\n")}`,
+      checks,
     ].filter(Boolean).join("\n\n");
   }
 
-  const defaults = defaultPromptSettings(recipe);
-  const choices = recipe.options.map(({ id }) => {
-    const control = recipeOptions[id];
-    const value = control.values.find((option) => option.value === settings.choices[id])
-      ?? control.values.find((option) => option.value === defaults.choices[id]);
-    return value?.instruction;
-  }).filter(Boolean);
+  const choices = selectedOptions(recipe, settings).flatMap(({ option }) => option ? [`- ${option.instruction}`] : []);
   const analysis = recipe.profile === "analysis";
   const renderMp4 = recipe.delivery === "rendered-mp4";
   const setup = renderMp4
@@ -129,21 +161,21 @@ export function composePrompt(recipe: PromptRecipe, settings: PromptSettings) {
       ? "Verify that the MP4 exists and plays, then attach the file in your response or give its absolute path in the shared workspace. If rendering is blocked, name the missing requirement and report that the MP4 is pending."
       : "Run the applicable checks and report what actually passed along with any checks you could not run.",
   ];
-  const checks = [...recipe.checks, ...(renderMp4 ? [mediaPlayback] : qualityChecks[recipe.profile])];
   return [
     `# ${recipe.title}`,
     recipe.summary,
     brief && `## ${renderMp4 ? "Video brief" : "Project brief"}\n${brief}`,
     `## Deliverable\n${recipe.deliverable}`,
     `## ${renderMp4 ? "Rendering and visual direction" : "Stack and visual direction"}\n- ${renderMp4 ? "Suggested render tools" : "Recommended starting stack"}: ${recipe.stack}\n- ${style.name}: ${style.guidance} ${styleContext[recipe.profile]}`,
-    choices.length > 0 && choices.map((choice) => `- ${choice}`).join("\n"),
+    choices.join("\n"),
     `## Tools and setup · ${agent.name}\n${analysis
       ? "Use the upstream Reverse Engineer Anything skill as the sole specialized analysis resource. Apply it to supported, authorized builds when the question needs artifact evidence. Scope the work to observable behavior and documented access. When available evidence is sufficient or the REA connection is unavailable, work from the supplied material and record whether REA was applicable and used."
       : agent.guidance}${!analysis && "url" in agent ? ` Official guide: ${agent.url}` : ""}`,
     !analysis && setup,
     recipe.resources.map((id) => resourceLine(id, settings.agent)).join("\n"),
     boosters.length > 0 && `### Optional workflow boosters\n${boosters.map((id) => resourceLine(id, settings.agent)).join("\n")}`,
+    recipe.rules?.length && `## ${skillWhiskRulesLabel}\n${recipe.rules.map(({ title, guidance }) => `- **${title}.** ${guidance}`).join("\n")}`,
     `## Workflow\n${instructions.map((step, index) => `${index + 1}. ${step}`).join("\n")}`,
-    `## Acceptance checks\n${checks.map((check) => `- [ ] ${check}`).join("\n")}`,
+    checks,
   ].filter(Boolean).join("\n\n");
 }
