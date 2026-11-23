@@ -7,14 +7,15 @@ export function CopyButton({ getText, recipeTitle, disabled, kind = "prompt" }: 
   getText: () => string;
   recipeTitle: string;
   disabled?: boolean;
-  kind?: "prompt" | "settings";
+  kind?: "prompt" | "settings" | "review";
 }) {
   const [state, setState] = useState<"idle" | "copied" | "manual">("idle");
   const [manualText, setManualText] = useState("");
   const textarea = useRef<HTMLTextAreaElement>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const isPrompt = kind === "prompt";
-  const copyItem = isPrompt ? "prompt" : "settings link";
+  const isShare = kind === "settings";
+  const isReview = kind === "review";
+  const copyItem = isShare ? "settings link" : isReview ? "review prompt" : "prompt";
 
   useEffect(() => () => clearTimeout(timer.current), []);
 
@@ -41,26 +42,27 @@ export function CopyButton({ getText, recipeTitle, disabled, kind = "prompt" }: 
   }
 
   const copied = state === "copied";
+  const label = copied ? `Copied ${copyItem}` : `Copy ${copyItem}`;
   const button = (
     <button
       type="button"
-      className={isPrompt ? "button copy-button" : "button secondary-button icon-button"}
+      className={isShare ? "button secondary-button icon-button" : isReview ? "button secondary-button" : "button copy-button"}
       onClick={copy}
       disabled={disabled}
-      aria-label={isPrompt ? `${copied ? "Copied prompt" : "Copy prompt"} for ${recipeTitle}` : "Share settings"}
+      aria-label={isShare ? "Share settings" : isReview ? label : `${label} for ${recipeTitle}`}
     >
-      {copied || isPrompt ? (
+      {copied || !isShare ? (
         <span className={copied ? "check-icon" : "copy-icon"} aria-hidden="true" />
       ) : (
         <span className="transfer-icon share-icon" aria-hidden="true"><span /></span>
       )}
-      {isPrompt && (copied ? "Copied" : "Copy prompt")}
+      {!isShare && (copied && !isReview ? "Copied" : label)}
     </button>
   );
 
   return (
     <>
-      {isPrompt ? button : <ActionTooltip label={copied ? "Link copied" : "Share settings"}>{button}</ActionTooltip>}
+      {isShare ? <ActionTooltip label={copied ? "Link copied" : "Share settings"}>{button}</ActionTooltip> : button}
       <span className="sr-only" role="status">
         {copied ? `Copied ${copyItem} for ${recipeTitle}.` : ""}
       </span>

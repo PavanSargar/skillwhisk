@@ -2,6 +2,22 @@ import { defineRecipes } from "./recipes";
 
 export const mobileRecipes = defineRecipes("mobile", [
   {
+    slug: "high-retention-mobile-app", title: "High-retention mobile app",
+    summary: "Build an app people return to, with a clear core action, fresh content, and saved progress.",
+    resources: ["expo-skill", "expo", "expo-sqlite", "native-a11y"],
+    workflow: "Identify a moment when the app is genuinely useful and make the first meaningful action quick. Build a default route into that action, then prototype discovery and saved progress with local fixtures. Pick engagement mechanics that fit the brief and leave people in control of their session and data.",
+    deliverable: "A runnable Expo app with a clear primary flow, a sample discovery experience, and persistent progress or preferences.",
+    rules: [
+      { title: "The Itch", guidance: "Pair the core action with an internal trigger such as curiosity, boredom, or a recurring need. Make opening the app useful even when notifications are off." },
+      { title: "The Lazy Thumb", guidance: "Make the core action as simple as possible, ideally one tap where that fits. Give it a prominent, accessible touch target." },
+      { title: "The Paved Path", guidance: "Choose one clear default path through the main task and put secondary choices where users can find them when needed." },
+      { title: "The Slot Machine", guidance: "Vary relevant content or discoveries so repeat sessions have something new. Keep essential outcomes like saved progress, prices, and purchases predictable." },
+      { title: "The Bottomless Pit", guidance: "When continuous discovery serves the task, load the next batch without breaking the flow. Provide a visible pause or exit and let users come back to their place." },
+      { title: "The Piggy Bank", guidance: "Let people invest in progress, saved items, or preferences that make the app more useful over time. Give users a clear way to reset or take their data with them." },
+    ],
+    checks: ["The primary action is easy to find and complete with notifications off, using touch or a screen reader.", "The default path takes a new user directly to the first useful outcome.", "Repeat sessions can surface different content while essential outcomes remain predictable.", "Discovery loads a new batch while preserving the ability to stop and resume.", "Progress and preferences survive restart, and the user can reset or export them."],
+  },
+  {
     slug: "habit-tracker", title: "Habit tracker", style: "claymorphism",
     summary: "Track repeatable habits and keep check-ins reliable across days.",
     resources: ["expo-skill", "expo", "expo-sqlite", "native-a11y"],

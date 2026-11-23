@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { getRecipe, recipes } from "../lib/catalog";
 import { makeCustomRecipe } from "../lib/catalog/custom-recipe";
-import { composePrompt, defaultPromptSettings } from "../lib/catalog/prompt";
+import { composePrompt, composeReviewPrompt, defaultPromptSettings } from "../lib/catalog/prompt";
 import { categories, recipeOptions } from "../lib/catalog/recipes";
 import { agentOptions, reaResources, resourceRegistry, workflowBoosters } from "../lib/catalog/resources";
 import { styleOptions } from "../lib/catalog/styles";
@@ -99,6 +99,18 @@ test("the same recipe reflects brief, project options, boosters and target compa
   assert.match(report, /when the question needs artifact evidence/);
 });
 
+test("review prompts use the same acceptance checks as their build prompts", () => {
+  for (const recipe of recipes) {
+    const settings = defaultPromptSettings(recipe);
+    const build = composePrompt(recipe, settings);
+    const review = composeReviewPrompt(recipe, settings);
+    assert.ok(review.startsWith(`# Review the result · ${recipe.title}\n`), recipe.slug);
+    assert.deepEqual(review.match(/^- \[ \] .+$/gm), build.match(/^- \[ \] .+$/gm), recipe.slug);
+    assert.match(review, /Pass, Fail, or Unverified/);
+    assert.doesNotMatch(review, /## Workflow|## Tools and setup/);
+  }
+});
+
 test("REA catalog and custom prompts reference only the official REA project", () => {
   const custom = makeCustomRecipe({
     category: "rea", title: "App observations", acceptanceChecks: "", resources: ["graphify", "playwright"],
@@ -146,6 +158,11 @@ test("security audit recipes and custom audits produce read-only reports", () =>
 
   assert.match(getRecipe("pentest-readiness-and-findings-audit")!.workflow, /completed pentest report/);
   assert.match(getRecipe("stress-test-evidence-audit")!.workflow, /supplied load or stress-test summaries/);
+  const audit = audits[0];
+  const review = composeReviewPrompt(audit, defaultPromptSettings(audit));
+  assert.match(review, /Review the completed report against the authorized artifacts and redacted evidence/);
+  assert.match(review, /Use existing offline, read-only analysis/);
+  assert.match(review, /Exclude live probing, vulnerability reproduction, exploit payloads, credential testing, new load generation/);
 });
 
 test("custom recipes apply category defaults, checked resources and user acceptance checks", () => {
